@@ -1,4 +1,4 @@
-package db.item3.score;
+package db.member2;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -9,19 +9,16 @@ import java.util.List;
 
 import db.util.DBConn;
 
-public class ScoreUI {
+public class MemberUI {
 	private BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-	
-	private ScoreDAO dao = new ScoreDAOImpl();
+	private MemberDAO dao = new MemberDAOImpl();
 	
 	public void menu() {
 		int ch;
 		
-		System.out.println("성적처리-PreparedStatement 예제\n");
-		
-		while(true) {
-			try {
-				System.out.print("1.등록 2.수정 3.삭제 4.학번검색 5.이름검색 6.전체리스트 7.종료 => ");
+        while(true) {
+        	try {
+				System.out.print("1.등록 2.수정 3.삭제 4.아이디검색 5.이름검색 6.리스트 7.종료 => ");
 				ch = Integer.parseInt(br.readLine());
 				
 				if(ch == 7) {
@@ -33,24 +30,28 @@ public class ScoreUI {
 				case 1: insert(); break;
 				case 2: update(); break;
 				case 3: delete(); break;
-				case 4: findByHak(); break;
+				case 4: findById(); break;
 				case 5: findByName(); break;
-				case 6: findByAll(); break;
+				case 6: listAll(); break;
 				}
+				
 			} catch (Exception e) {
 			}
-		}
+        }
 		
 	}
 	
-	public void insert() {
+	protected void insert() {
 		System.out.println("\n[데이터 등록]");
 		
-		ScoreDTO dto = new ScoreDTO();
+		MemberDTO dto = new MemberDTO();
 		
 		try {
-			System.out.print("학번 ? ");
-			dto.setHak(br.readLine());
+			System.out.print("아이디 ? ");
+			dto.setId(br.readLine());
+			
+			System.out.print("비밀번호 ? ");
+			dto.setPwd(br.readLine());
 			
 			System.out.print("이름 ? ");
 			dto.setName(br.readLine());
@@ -58,34 +59,25 @@ public class ScoreUI {
 			System.out.print("생년월일[YYYY-MM-DD] ? ");
 			dto.setBirth(br.readLine());
 			
-			System.out.print("국어 ? ");
-			dto.setKor(Integer.parseInt(br.readLine()));
+			System.out.print("이메일 ? ");
+			dto.setEmail(br.readLine());
 			
-			System.out.print("영어 ? ");
-			dto.setEng(Integer.parseInt(br.readLine()));
+			System.out.print("전화번호 ? ");
+			dto.setTel(br.readLine());
 			
-			System.out.print("수학 ? ");
-			dto.setMat(Integer.parseInt(br.readLine()));
+			dao.insertMember(dto);
 			
-			dao.insertScore(dto);
+			System.out.println("회원 등록 성공...");
 			
-			System.out.println("데이터 등록이 완료 되었습니다. !!!");
-			
-		} catch (NumberFormatException e) {
-			System.out.println("점수는 숫자만 입력 가능합니다.");
 		} catch (SQLIntegrityConstraintViolationException e) {
-			// SQLIntegrityConstraintViolationException
-			// : 기본키중복, NOT NULL등의 제약조건 위반 - 무결성제약 위반
 			if(e.getErrorCode() == 1) { // ORA-00001
-				System.out.println("에러-등록된 학번입니다.");
+				System.out.println("에러-등록된 아이디입니다.");
 			}else if(e.getErrorCode() == 1400) { // NOT NULL 위반
 				System.out.println("에러-필수 입력사항을 입력하지 않았습니다.");
 			}else {
 				System.out.println(e.toString());
 			}
-			
 		} catch (SQLDataException e) {
-			// 날짜등의 형식 잘못으로 인한 에러
 			if(e.getErrorCode() == 1840 || e.getErrorCode() == 1861) {
 				System.out.println("에러-날짜 형식 오류입니다.");
 			}else {
@@ -100,14 +92,28 @@ public class ScoreUI {
 		System.out.println();
 	}
 	
-	public void update(){
+	protected void update() {
 		System.out.println("\n[데이터 수정]");
 		
-		ScoreDTO dto = new ScoreDTO();
+		MemberDTO dto = new MemberDTO();
+		String id;
 		
 		try {
 			System.out.print("수정할 학번 ? ");
-			dto.setHak(br.readLine());
+			id = br.readLine();
+			
+			dto = dao.readMember(id);
+			if(dto == null) {
+				System.out.println("등록된 아이디가 아닙니다.\n");
+				return;
+			}
+			title();
+			print(dto);
+			
+			dto.setId(id);
+			
+			System.out.print("패스워드 ? ");
+			dto.setPwd(br.readLine());
 			
 			System.out.print("이름 ? ");
 			dto.setName(br.readLine());
@@ -115,25 +121,16 @@ public class ScoreUI {
 			System.out.print("생년월일[YYYY-MM-DD] ? ");
 			dto.setBirth(br.readLine());
 			
-			System.out.print("국어 ? ");
-			dto.setKor(Integer.parseInt(br.readLine()));
+			System.out.print("이메일 ? ");
+			dto.setEmail(br.readLine());
 			
-			System.out.print("영어 ? ");
-			dto.setEng(Integer.parseInt(br.readLine()));
+			System.out.print("전화번호 ? ");
+			dto.setTel(br.readLine());
 			
-			System.out.print("수학 ? ");
-			dto.setMat(Integer.parseInt(br.readLine()));
+			dao.updateMember(dto);
 			
-			int result = dao.updateScore(dto);
+			System.out.println("수정이 완료 되었습니다.\n");
 			
-			if(result > 0) {
-				System.out.println("데이터 수정이 완료 되었습니다. !!!");
-			} else {
-				System.out.println("등록된 데이터가 아닙니다. !!!");
-			}
-			
-		} catch (NumberFormatException e) {
-			System.out.println("점수는 숫자만 입력 가능합니다.");
 		} catch (SQLDataException e) {
 			if(e.getErrorCode() == 1840 || e.getErrorCode() == 1861) {
 				System.out.println("에러-날짜 형식 오류입니다.");
@@ -149,24 +146,23 @@ public class ScoreUI {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
 		System.out.println();
 	}
 	
-	public void delete() {
+	protected void delete() {
 		System.out.println("\n[데이터 삭제]");
-
-		String hak;
+		
+		String id;
 		
 		try {
-			System.out.print("삭제할 학번 ? ");
-			hak = br.readLine();
+			System.out.print("삭제할 아이디 ? ");
+			id = br.readLine();
 			
-			int result = dao.deleteScore(hak);
+			int result = dao.deleteMember(id);
 			if(result > 0) {
-				System.out.println("데이터를 삭제 했습니다. !!!");
+				System.out.println("데이터를 삭제 했습니다.\n");
 			} else {
-				System.out.println("등록된 데이터가 아닙니다.");
+				System.out.println("등록된 아이디가 아닙니다.\n");
 			}
 			
 		} catch (SQLException e) {
@@ -178,17 +174,29 @@ public class ScoreUI {
 		System.out.println();
 	}
 	
-	public void findByHak() {
-		System.out.println("\n[학번 검색]");
-		String hak;
+	protected void listAll() {
+		System.out.println("\n[전체 리스트 출력]");
+		
+		List<MemberDTO> list = dao.listMember();
+		
+		title();
+		for(MemberDTO dto : list) {
+			print(dto);
+		}
+		System.out.println();
+	}
+	
+	protected void findById() {
+		System.out.println("\n[아이디 검색]");
+		String id;
 		
 		try {
-			System.out.print("검색할 학번 ? ");
-			hak = br.readLine();
+			System.out.print("검색할 아이디 ? ");
+			id = br.readLine();
 			
-			ScoreDTO dto = dao.findById(hak);
+			MemberDTO dto = dao.readMember(id);
 			if(dto == null) {
-				System.out.println("등록된 학번이 아닙니다.\n");
+				System.out.println("등록된 아이디가 아닙니다.\n");
 				return;
 			}
 			
@@ -198,10 +206,11 @@ public class ScoreUI {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 		System.out.println();
 	}
 	
-	public void findByName() {
+	protected void findByName() {
 		System.out.println("\n[이름 검색]");
 		
 		String name;
@@ -210,10 +219,10 @@ public class ScoreUI {
 			System.out.print("검색할 이름 ? ");
 			name = br.readLine();
 			
-			List<ScoreDTO> list = dao.listScore(name);
+			List<MemberDTO> list = dao.listMember(name);
 			
 			title();
-			for(ScoreDTO dto : list) {
+			for(MemberDTO dto : list) {
 				print(dto);
 			}
 		} catch (Exception e) {
@@ -223,40 +232,22 @@ public class ScoreUI {
 		System.out.println();
 	}
 	
-	public void findByAll() {
-		System.out.println("\n[전체 리스트]");
-		
-		List<ScoreDTO> list = dao.listScore();
-		
-		title();
-		for(ScoreDTO dto : list) {
-			print(dto);
-		}
-		System.out.println();
-	}
-	
 	private void title() {
-		System.out.print("학번\t");
+		System.out.print("아이디\t");
 		System.out.print("이름\t");
+		System.out.print("패스워드\t");
 		System.out.print("생년월일\t\t");
-		System.out.print("국어\t");
-		System.out.print("영어\t");
-		System.out.print("수학\t");
-		System.out.print("총점\t");
-		System.out.println("평균");
+		System.out.print("이메일\t\t");
+		System.out.println("전화번호\t");
 		System.out.println("----------------------------------------------------------------------");
 	}
 	
-	private void print(ScoreDTO dto) {
-		System.out.print(dto.getHak() + "\t");
+	private void print(MemberDTO dto){
+		System.out.print(dto.getId() + "\t");
 		System.out.print(dto.getName() + "\t");
+		System.out.print(dto.getPwd() + "\t");
 		System.out.print(dto.getBirth() + "\t");
-		System.out.print(dto.getKor() + "\t");
-		System.out.print(dto.getEng() + "\t");
-		System.out.print(dto.getMat() + "\t");
-		System.out.print(dto.getTot() + "\t");
-		System.out.println(dto.getAve());
+		System.out.print(dto.getEmail() + "\t");
+		System.out.println(dto.getTel());
 	}
-	
-	
 }
