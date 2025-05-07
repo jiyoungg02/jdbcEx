@@ -1,4 +1,4 @@
-package db.item3.member;
+package db.item4.member;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -16,7 +16,7 @@ public class MemberUI {
 	public void menu() {
 		int ch;
 		
-		System.out.println("회원 - PreparedStatement 예제...");
+		System.out.println("회원 - CallableStatement 예제...");
 		
 		while(true) {
 			try {
@@ -101,9 +101,12 @@ public class MemberUI {
 
 			System.out.print("수정할 아이디 ? ");
 			dto.setId(br.readLine());
-			
+
 			System.out.print("패스워드 ? ");
 			dto.setPwd(br.readLine());
+			
+			System.out.print("이름 ? ");
+			dto.setName(br.readLine());
 
 			System.out.print("생년월일 ? ");
 			dto.setBirth(br.readLine());
@@ -114,13 +117,10 @@ public class MemberUI {
 			System.out.print("전화번호 ? ");
 			dto.setTel(br.readLine());
 
-			int result = dao.updateMember(dto);
+			dao.updateMember(dto);
 
-			if (result == 0) {
-				System.out.println("등록된 정보가 아닙니다.");
-			} else {
-				System.out.println("회원 정보 수정 성공 !!!");
-			}
+			System.out.println("회원 정보 수정 성공 !!!");
+			
 		} catch (SQLDataException e) {
 			// 날짜등의 형식 잘못으로 인한 예외
 			if (e.getErrorCode() == 1840 || e.getErrorCode() == 1861) {
@@ -131,6 +131,8 @@ public class MemberUI {
 		} catch (SQLException e) {
 			if (e.getErrorCode() == 1407) { // UPDATE - NOT NULL 위반
 				System.out.println("에러-필수 입력사항을 입력하지 않았습니다.");
+			} else if(e.getErrorCode() == 20100){
+					System.out.println("등록된 아이디가 아닙니다.");
 			} else {
 				e.printStackTrace();
 			}
@@ -149,13 +151,14 @@ public class MemberUI {
 			System.out.print("탈퇴할 아이디 ? ");
 			id = br.readLine();
 
-			int result = dao.deleteMember(id);
-
-			if (result == 0) {
-				System.out.println("등록된 정보가 아닙니다.");
-			} else {
-				System.out.println("회원 탈퇴 성공 !!!");
-			}
+			dao.deleteMember(id);
+		
+			System.out.println("회원 탈퇴 성공 !!!");
+			
+		} catch (SQLException e) {
+			if(e.getErrorCode() == 20100){
+				System.out.println("등록된 아이디가 아닙니다.");
+			} 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

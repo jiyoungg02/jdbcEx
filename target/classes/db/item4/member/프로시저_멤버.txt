@@ -1,0 +1,124 @@
+-- insertMember : member1 과 member2 테이블에 INSERT 하는 프로시저
+CREATE OR REPLACE PROCEDURE insertMember
+(
+    pId IN member1.id%TYPE,
+    pPwd IN member1.pwd%TYPE,
+    pName IN member1.name%TYPE,
+    pBirth IN member2.birth%TYPE,
+    pEmail IN member2.email%TYPE,
+    pTel IN member2.tel%TYPE
+)
+IS
+BEGIN
+    INSERT INTO member1(id, pwd, name)
+        VALUES (pId, pPwd, pName);
+    
+    INSERT INTO member2(id, birth, email, tel)
+        VALUES (pId, pBirth, pEmail, pTel);
+    
+    COMMIT;
+END;
+/
+SELECT * FROM user_procedures;
+EXEC insertMember('7788', '1234', '다자바', To_DATE('2000-10-10', 'YYYY-MM-DD'), '1234@', '1234-1234');
+SELECT * FROM member1;
+SELECT * FROM member2;
+
+-- updateMember : member1 과 member2 테이블의 데이터를 UPDATE 하는 프로시저
+CREATE OR REPLACE PROCEDURE updateMember
+(
+    pPwd IN member1.pwd%TYPE,
+    pName IN member1.name%TYPE,
+    pBirth IN member2.birth%TYPE,
+    pEmail IN member2.email%TYPE,
+    pTel IN member2.tel%TYPE,
+    pId IN member1.id%TYPE
+)
+IS
+BEGIN
+    UPDATE member1 SET pwd=pPwd, name=pName
+    WHERE id=pId;
+    
+    UPDATE member2 SET birth=pBirth, email=pEmail, tel=pTel
+    WHERE id=pId;
+    IF SQL%NOTFOUND THEN
+        RAISE_APPLICATION_ERROR(-20100, '등록된 자료가 아닙니다.');
+    END IF;
+    
+    COMMIT;
+END;
+/
+
+EXEC updateMember('123', '이자바', To_DATE('2000-10-10', 'YYYY-MM-DD'), '1234@#', '02-1234-1234', '7788');
+SELECT * FROM member1;
+SELECT * FROM member2;
+
+-- deleteMember : member1 과 member2 테이블의 데이터를 DELETE 하는 프로시저
+CREATE OR REPLACE PROCEDURE deleteMember
+(
+    pId IN member1.id%TYPE
+)
+IS
+BEGIN
+    DELETE FROM member2 WHERE id=pId;
+    DELETE FROM member1 WHERE id=pId;
+
+    IF SQL%NOTFOUND THEN
+        RAISE_APPLICATION_ERROR(-20100, '등록된 자료가 아닙니다.');
+    END IF;
+    
+    COMMIT;
+END;
+/
+SELECT * FROM user_procedures;
+EXEC deleteMember('7788');
+SELECT * FROM member1;
+SELECT * FROM member2;
+
+-- findByAll : member1 과 member2 테이블의 모든 데이터를 가져오는 프로시저
+CREATE OR REPLACE PROCEDURE findByAll
+(
+    pResult OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    OPEN pResult FOR
+        SELECT m1.id, pwd, name, birth, email, tel
+        FROM member1 m1
+		JOIN member2 m2 ON m1.id = m2.id;
+END;
+/
+
+-- findById : member1 과 member2 테이블에서 id 조건에 만족하는 데이터를 가져오는 프로시저
+CREATE OR REPLACE PROCEDURE findById
+(
+    pResult OUT SYS_REFCURSOR,
+    pId IN VARCHAR2
+)
+IS
+BEGIN
+    OPEN pResult FOR
+        SELECT m1.id, pwd, name, birth, email, tel
+        FROM member1 m1
+		JOIN member2 m2 ON m1.id = m2.id
+        WHERE m1.id=pId;
+END;
+/
+
+-- findByName : member1 과 member2 테이블에서 이름을 검색하여 데이터를 가져오는 프로시저
+CREATE OR REPLACE PROCEDURE findByName
+(
+    pResult OUT SYS_REFCURSOR,
+    pName IN VARCHAR2
+)
+IS
+BEGIN
+    OPEN pResult FOR
+        SELECT m1.id, pwd, name, birth, email, tel
+        FROM member1 m1
+		JOIN member2 m2 ON m1.id = m2.id
+        WHERE INSTR(name, pName) >= 1;
+END;
+/
+SELECT * FROM user_procedures;
+

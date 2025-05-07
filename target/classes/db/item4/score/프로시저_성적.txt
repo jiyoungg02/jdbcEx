@@ -1,0 +1,138 @@
+-- score 테이블에 데이터를 추가하는 프로시저
+CREATE OR REPLACE PROCEDURE insertScore
+(
+    pHak IN score.hak%TYPE,
+    pName IN score.name%TYPE,
+    pBirth IN score.birth%TYPE,
+    pKor IN score.kor%TYPE,
+    pEng IN score.eng%TYPE,
+    pMat IN score.mat%TYPE
+)
+IS
+BEGIN
+    INSERT INTO score(hak, name, birth, kor, eng, mat)
+        VALUES (pHak, pName, pBirth, pKor, pEng, pMat);
+    COMMIT;
+END;
+/
+
+SELECT * FROM user_procedures;
+EXEC insertScore('7788', '다자바', To_DATE('2000-10-10', 'YYYY-MM-DD'), 80, 90, 85);
+SELECT * FROM score;
+
+
+-- score 테이블의 데이터를 수정하는 프로시저
+CREATE OR REPLACE PROCEDURE updateScore
+(
+    pName IN score.name%TYPE,
+    pBirth IN score.birth%TYPE,
+    pKor IN score.kor%TYPE,
+    pEng IN score.eng%TYPE,
+    pMat IN score.mat%TYPE,
+    pHak IN score.hak%TYPE
+)
+IS
+BEGIN
+    UPDATE score SET name=pName, birth=pBirth, kor=pKor, eng=pEng, mat=pMat
+    WHERE hak=pHak;
+    IF SQL%NOTFOUND THEN
+        RAISE_APPLICATION_ERROR(-20100, '등록된 자료가 아닙니다.');
+    END IF;
+    
+    COMMIT;
+END;
+/
+
+EXEC updateScore('이자바', To_DATE('2000-10-10', 'YYYY-MM-DD'), 90, 95, 85, '7788');
+SELECT * FROM score;
+
+
+--  score 테이블의 데이터를 삭제하는 프로시저
+CREATE OR REPLACE PROCEDURE deleteScore
+(
+    pHak IN score.hak%TYPE
+)
+IS
+BEGIN
+    DELETE FROM score WHERE hak=pHak;
+    IF SQL%NOTFOUND THEN
+        RAISE_APPLICATION_ERROR(-20100, '등록된 자료가 아닙니다.');
+    END IF;
+    
+    COMMIT;
+END;
+/
+
+SELECT * FROM user_procedures;
+EXEC deleteScore('7788');
+SELECT * FROM score;
+
+
+-- score 테이블의 모든 데이터를 가져오는 프로시저
+CREATE OR REPLACE PROCEDURE findByAll
+(
+    pResult OUT SYS_REFCURSOR
+)
+IS
+BEGIN
+    OPEN pResult FOR
+        SELECT hak, name, TO_CHAR(birth, 'YYYY-MM-DD') birth, kor, eng, mat,
+            kor+eng+mat tot, (kor+eng+mat)/3 ave,
+            RANK() OVER(ORDER BY kor+eng+mat DESC) rank
+        FROM score;
+END;
+/
+
+-- score 테이블에서 학번을 검색하여 데이터를 가져오는 프로시저
+CREATE OR REPLACE PROCEDURE findById
+(
+    pResult OUT SYS_REFCURSOR,
+    pHak IN VARCHAR2
+)
+IS
+BEGIN
+    OPEN pResult FOR
+        SELECT hak, name, TO_CHAR(birth, 'YYYY-MM-DD') birth, kor, eng, mat,
+            kor+eng+mat tot, (kor+eng+mat)/3 ave,
+            RANK() OVER(ORDER BY kor+eng+mat DESC) rank
+        FROM score
+        WHERE hak = pHak;
+END;
+/
+
+-- score 테이블에서 이름을 검색하여 데이터를 가져오는 프로시저
+CREATE OR REPLACE PROCEDURE findByName
+(
+    pResult OUT SYS_REFCURSOR,
+    pName IN VARCHAR2
+)
+IS
+BEGIN
+    OPEN pResult FOR
+        SELECT hak, name, TO_CHAR(birth, 'YYYY-MM-DD') birth, kor, eng, mat,
+            kor+eng+mat tot, (kor+eng+mat)/3 ave,
+            RANK() OVER(ORDER BY kor+eng+mat DESC) rank
+        FROM score
+        WHERE INSTR(name, pName) > 1;
+END;
+/
+
+
+SELECT * FROM user_procedures;
+
+-- 과목별 평균을 구하는 프로시저
+CREATE OR REPLACE PROCEDURE averageScore
+(
+    pKor OUT NUMBER,
+    pEng OUT NUMBER,
+    pMat OUT NUMBER
+)
+IS
+BEGIN
+    SELECT NVL(AVG(kor), 0), NVL(AVG(eng), 0), NVL(AVG(mat), 0)
+    INTO pKor, pEng, pMat
+    FROM score;
+END;
+/
+
+SELECT * FROM user_procedures;

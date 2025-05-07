@@ -1,0 +1,9 @@
+CREATE  TABLE  score(
+    hak  VARCHAR2(30)
+    ,name VARCHAR2(30)  NOT  NULL
+    ,birth   DATE  NOT NULL
+    ,kor   NUMBER(3)  
+    ,eng   NUMBER(3)  
+    ,mat   NUMBER(3)  
+    ,CONSTRAINT  pk_score_hak  PRIMARY  KEY(hak)
+)

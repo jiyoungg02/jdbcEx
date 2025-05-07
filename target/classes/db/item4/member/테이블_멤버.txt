@@ -1,0 +1,14 @@
+CREATE TABLE member1 (
+    id VARCHAR2(30) PRIMARY KEY
+    ,pwd VARCHAR2(50) NOT NULL
+    ,name VARCHAR2(30) NOT NULL
+);
+    
+CREATE TABLE member2 (
+    id VARCHAR2(30) PRIMARY KEY
+    ,birth DATE
+    ,email VARCHAR2(50)
+    ,tel VARCHAR2(30) 
+    ,CONSTRAINT fk_member2_id FOREIGN KEY(id)
+                REFERENCES member1(id)
+);      

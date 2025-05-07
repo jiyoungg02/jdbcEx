@@ -31,6 +31,8 @@ public class MemberDAOImpl implements MemberDAO {
 
 		// member1과 member2 테이블에 추가
 		try {
+			conn.setAutoCommit(false);
+			
 			sql = "INSERT INTO member1(id, name, pwd) VALUES (?, ?, ?)";
 
 			pstmt = conn.prepareStatement(sql);
@@ -51,8 +53,8 @@ public class MemberDAOImpl implements MemberDAO {
 			pstmt.setString(4, dto.getTel());
 
 			result += pstmt.executeUpdate();
-
-/*
+			
+			/*
 			sql = "INSERT ALL INTO member1(id,pwd,name) VALUES(?,?,?) "
 			       + " INTO member2(id,birth,email,tel) VALUES(?,TO_DATE(?, 'YYYY-MM-DD'),?,?) ";
 			       + " SELECT * FROM dual";
@@ -65,11 +67,19 @@ public class MemberDAOImpl implements MemberDAO {
 			pstmt.setString(6, dto.getEmail());
 			pstmt.setString(7, dto.getTel());
 			result=pstmt.executeUpdate();
- */
+			 */
+
+			conn.commit();
+			
 		} catch (SQLException e) {
+			DBUtil.rollback(conn); // 롤백
 			// e.printStackTrace();
 			throw e;
 		} finally {
+			try {
+				conn.setAutoCommit(true);
+			} catch (Exception e2) {
+			}
 			DBUtil.close(pstmt);
 		}
 
@@ -86,6 +96,8 @@ public class MemberDAOImpl implements MemberDAO {
 		
 		// id 조건에 맞는 member1 테이블과 member2 테이블 데이터 수정
 		try {
+			conn.setAutoCommit(false);
+			
 			sql = "UPDATE member1 SET pwd = ? WHERE id = ?";
 
 			pstmt = conn.prepareStatement(sql);
@@ -106,10 +118,18 @@ public class MemberDAOImpl implements MemberDAO {
 
 			result += pstmt.executeUpdate();
 
+			conn.commit();
+			
 		} catch (SQLException e) {
+			DBUtil.rollback(conn);
+			
 			// e.printStackTrace();
 			throw e;
 		} finally {
+			try {
+				conn.setAutoCommit(true);
+			} catch (Exception e2) {
+			}
 			DBUtil.close(pstmt);
 		}
 
