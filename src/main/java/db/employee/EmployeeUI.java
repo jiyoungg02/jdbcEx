@@ -74,21 +74,116 @@ public class EmployeeUI {
 	public void update() {
 		System.out.println("\n사원 정보 수정...");
 		
-		
+		try {
+			EmployeeDTO dto = new EmployeeDTO();
+			
+			System.out.print("수정할 사번 ? ");
+			dto.setSabeon(br.readLine());
+			
+			System.out.print("생년월일 ? ");
+			dto.setBirth(br.readLine());
+			
+			System.out.print("전화번호 ? ");
+			dto.setTel(br.readLine());
+			
+			int result = dao.updateEmployee(dto);
+			
+			if(result == 0) {
+				System.out.println("등록된 정보가 아닙니다.\n");
+			} else {
+				System.out.println("사원 정보 수정이 완료되었습니다.\n");
+			}
+					
+		} catch (SQLDataException e) {
+			// 날짜등의 형식 잘못으로 인한 예외
+			if (e.getErrorCode() == 1840 || e.getErrorCode() == 1861) {
+				System.out.println("에러-날짜 입력 형식 오류입니다.");
+			} else {
+				System.out.println(e.toString());
+			}
+		} catch (SQLException e) {
+			if (e.getErrorCode() == 1407) { // UPDATE - NOT NULL 위반
+				System.out.println("에러-필수 입력사항을 입력하지 않았습니다.");
+			} else {
+				e.printStackTrace();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println();
 	}
 	
 	public void findBySabeon() {
 		System.out.println("\n사번 검색...");
 		
+		try {
+			String sabeon;
+			System.out.print("검색할 사번 ? ");
+			sabeon = br.readLine();
+			
+			EmployeeDTO dto = dao.readEmployee(sabeon);
+			if(dto == null) {
+				System.out.println("등록된 정보가 없습니다.\n");
+				return;
+			}
+			
+			title();
+			print(dto);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println();
 	}
 
 	public void findByName() {
 		System.out.println("\n이름 검색...");
 		
+		try {
+			String name;
+			System.out.print("검색할 이름 ? ");
+			name = br.readLine();
+			
+			List<EmployeeDTO> list = dao.listEmployee(name);
+			
+			if(list.size() == 0) {
+				System.out.println("등록된 자료가 없습니다.\n");
+				return;
+			}
+			
+			for(EmployeeDTO dto : list) {
+				title();
+				print(dto);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println();
+		
 	}
 	
 	public void listAll() {
 		System.out.println("\n사원 리스트...");
-
+		
+		List<EmployeeDTO> list = dao.listEmployee();
+		for(EmployeeDTO dto : list) {
+			title();
+			print(dto);
+		}
+		System.out.println();
+	}
+	
+	public void title() {
+		System.out.print("사번\t");
+		System.out.print("이름\t");
+		System.out.print("생년월일\t\t");
+		System.out.println("전화번호");
+	}
+	
+	public void print(EmployeeDTO dto) {
+		System.out.print(dto.getSabeon() + "\t");
+		System.out.print(dto.getName() + "\t");
+		System.out.print(dto.getBirth() + "\t");
+		System.out.println(dto.getTel());
 	}
 }
