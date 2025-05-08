@@ -106,8 +106,9 @@ public class MemberDAOImpl implements MemberDAO {
 			result = 1;
 
 		} catch (SQLException e) {
-			e.printStackTrace();
 			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
 		} finally {
 			DBUtil.close(cstmt);
 		}
